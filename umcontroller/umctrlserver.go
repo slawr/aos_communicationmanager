@@ -58,7 +58,7 @@ func newServer(cfg *config.Config, ch chan umCtrlInternalMsg, insecure bool) (se
 
 	var opts []grpc.ServerOption
 
-	if insecure == false {
+	if !insecure {
 		tlsConfig, err := cryptutils.GetServerMutualTLSConfig(cfg.Crypt.CACert, cfg.CertStorage)
 		if err != nil {
 			return nil, aoserrors.Wrap(err)
@@ -85,7 +85,12 @@ func (server *umCtrlServer) Start() (err error) {
 		return aoserrors.Wrap(err)
 	}
 
-	go server.grpcServer.Serve(server.listener)
+	go func() {
+		if err := server.grpcServer.Serve(server.listener); err != nil {
+			log.Errorf("Can't serve grpc server: %s", err)
+		}
+	}()
+
 	return nil
 }
 

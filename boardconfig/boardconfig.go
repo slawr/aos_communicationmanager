@@ -98,7 +98,9 @@ func New(cfg *config.Config, client Client) (instance *Instance, err error) {
 		boardConfigFile: cfg.BoardConfigFile,
 	}
 
-	instance.load()
+	if err = instance.load(); err != nil {
+		return nil, aoserrors.Wrap(err)
+	}
 
 	return instance, nil
 }

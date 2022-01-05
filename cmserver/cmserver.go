@@ -143,7 +143,12 @@ func New(cfg *config.Config, handler UpdateHandler, insecure bool) (server *CMSe
 			return server, aoserrors.Wrap(err)
 		}
 
-		go server.grpcServer.Serve(server.listener)
+		go func() {
+			if err := server.grpcServer.Serve(server.listener); err != nil {
+				log.Errorf("Can't serve grpc server: %s", err)
+			}
+		}()
+
 	}
 
 	go server.handleChannels()

@@ -111,11 +111,11 @@ func New(moduleID string, cfg *config.Config, cryptoContext CryptoContext, sende
 		availableSize:    make(map[string]int64),
 	}
 
-	if err = os.MkdirAll(downloader.config.DownloadDir, 755); err != nil {
+	if err = os.MkdirAll(downloader.config.DownloadDir, 0755); err != nil {
 		return nil, aoserrors.Wrap(err)
 	}
 
-	if err = os.MkdirAll(downloader.config.DecryptDir, 755); err != nil {
+	if err = os.MkdirAll(downloader.config.DecryptDir, 0755); err != nil {
 		return nil, aoserrors.Wrap(err)
 	}
 
@@ -220,7 +220,11 @@ func (downloader *Downloader) addToQueue(result *downloadResult) (err error) {
 
 	downloader.currentDownloads[result.id] = result
 
-	go downloader.process(result)
+	go func() {
+		if err := downloader.process(result); err != nil {
+			log.Errorf("Can't process dowload request: %s", err)
+		}
+	}()
 
 	return nil
 }
